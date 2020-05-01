@@ -1,0 +1,443 @@
+/* eslint-disable  func-names */
+/* eslint-disable  no-console */
+const Alexa = require('ask-sdk-core');
+const http = require("https");
+
+// The function for welcoming people
+const GetWelcomeHandler = {
+  canHandle(handlerInput) { return handlerInput.requestEnvelope.request.type === "LaunchRequest"; },
+  // Creating the outputSpeech constant and returning it
+  handle(handlerInput) {
+    const outputSpeech = "Hello, my name is Alexa. How can I help you today?";
+    return handlerInput.responseBuilder.speak(outputSpeech).reprompt().getResponse();
+  }
+};
+
+
+const GetRemoteDataHandler = {
+  canHandle(handlerInput) {
+    return  (handlerInput.requestEnvelope.request.type === 'IntentRequest'
+      && handlerInput.requestEnvelope.request.intent.name === 'GetRemoteDataIntent');
+  },
+  async handle(handlerInput) {
+    let outputSpeech = 'This is the default message.';
+    await getRemoteData('https://rocketelev.azurewebsites.net/api/columns/get/status/active')
+      .then((response) => {
+        const data = JSON.parse(response);
+        outputSpeech = `There are currently ${data.length} elevator active. `;
+      })
+      .catch((err) => {
+        //set an optional error message here
+        "Shit ain't working"
+        //outputSpeech = err.message;
+      });
+    return handlerInput.responseBuilder
+      .speak(outputSpeech)
+      .getResponse();
+  },
+};
+
+
+
+
+// The function for returning all of the information when asked "Hey Alexa, What is going on at Rocket Elevators?"
+
+const GetAllInformationHandler = {
+  canHandle(handlerInput) {
+    return (handlerInput.requestEnvelope.request.type === 'IntentRequest' && handlerInput.requestEnvelope.request.intent.name === 'GetAllInformationIntent'); },
+  async handle(handlerInput) {
+    let outputSpeech = 'This is the default message.';
+    
+    // All the constants holding the GET requests
+    const getelevatorToText = await getRemoteData('http://floating-citadel-15630.herokuapp.com/api/elevators/get/status/all')
+    const getElevatorNotActive = await getRemoteData('http://floating-citadel-15630.herokuapp.com/api/elevators')
+    const getbuildingToText = await getRemoteData('http://floating-citadel-15630.herokuapp.com/api/buildings/')
+    const getcustomerToText =  await getRemoteData('http://floating-citadel-15630.herokuapp.com/api/customers')
+    const getelevatorInactive =  await getRemoteData('http://floating-citadel-15630.herokuapp.com/api/elevators/get/status/inactive')
+    const getelevatorIntervention =  await getRemoteData('http://floating-citadel-15630.herokuapp.com/api/elevators/get/status/intervention')
+    const getBattery = await getRemoteData('http://floating-citadel-15630.herokuapp.com/api/batteries/')
+    const getLead = await getRemoteData('http://floating-citadel-15630.herokuapp.com/api/leads')
+    const getCity = await getRemoteData('http://floating-citadel-15630.herokuapp.com/api/addresses/city')
+    const getQuote = await getRemoteData('http://floating-citadel-15630.herokuapp.com/api/quotes')
+    
+    // Parsing the GET requests as JSON
+    
+    const elevator = JSON.parse(getelevatorToText)
+    const building = JSON.parse(getbuildingToText)
+    const customer = JSON.parse(getcustomerToText)
+    const elevatorInactiveOrIntervention = JSON.parse(getElevatorNotActive)
+    const totalElevatorNotRunning  = parseInt(elevator.length) - parseInt(elevatorInactiveOrIntervention.length)
+    const batteries = JSON.parse(getBattery)
+    const lead = JSON.parse(getLead)
+    const city = JSON.parse(getCity)
+    const quote = JSON.parse(getQuote)
+    
+    // Creating the output speech with the previously declared constants
+    
+    outputSpeech = `Greetings, there are currently ${elevator.length} elevators deployed in the ${building.length} buildings
+    of your ${customer.length} customers. Currently, ${totalElevatorNotRunning} are not in Running Status and are being serviced.
+    ${batteries.length} Batteries are deployed across ${city.length} cities. On another note, you currently have ${quote.length} 
+    quotes awaiting processing. You also have ${lead.length} leads in your contact requests.`;
+    // Returning the output speech
+    
+    return handlerInput.responseBuilder.speak(outputSpeech).getResponse();
+    
+  },
+};
+
+const GetElevatorStatusHandler = {
+  canHandle(handlerInput) {
+    return (handlerInput.requestEnvelope.request.type === 'IntentRequest'
+      && handlerInput.requestEnvelope.request.intent.name === 'GetElevatorStatusIntent');
+  },
+  async handle(handlerInput) {
+    let outputSpeech = "This is the default message.";
+    
+    const id = handlerInput.requestEnvelope.request.intent.slots.id.value;
+    
+    const elevatorTotal = await getRemoteData('http://floating-citadel-15630.herokuapp.com/api/elevators/get/status/all');
+    const elevatorLength = JSON.parse(elevatorTotal)
+    
+    if (id > elevatorLength.length) {
+        
+    outputSpeech = `The ${id} exceed the number of elevator. The number of elevator deployed is ${elevatorLength.length} `;
+      return handlerInput.responseBuilder
+        .speak(outputSpeech)
+        .reprompt()
+        .getResponse();
+    }
+    const elevatorStatus = await getRemoteData('http://floating-citadel-15630.herokuapp.com/api/elevators/' + id);
+    
+    const elevator = JSON.parse(elevatorStatus).status;
+    
+    outputSpeech = `The status of elevator ${id} is ${elevator} `;
+    return handlerInput.responseBuilder
+      .speak(outputSpeech)
+      .reprompt()
+      .getResponse();
+  }
+};
+
+
+const GetColumnStatusHandler = {
+  canHandle(handlerInput) {
+    return (handlerInput.requestEnvelope.request.type === 'IntentRequest'
+      && handlerInput.requestEnvelope.request.intent.name === 'GetColumnStatusIntent');
+  },
+  async handle(handlerInput) {
+    let outputSpeech = "This is the default message.";
+    
+    const idColumn = handlerInput.requestEnvelope.request.intent.slots.idColumn.value;
+
+    const columnTotal = await getRemoteData('http://floating-citadel-15630.herokuapp.com/api/columns');
+    const columnLength = JSON.parse(columnTotal)
+    
+    if (idColumn > columnLength.length) {
+        
+    outputSpeech = `The ${idColumn} exceed the number of column. The number of column deployed is ${columnLength.length} `;
+      return handlerInput.responseBuilder
+        .speak(outputSpeech)
+        .reprompt()
+        .getResponse();
+    }
+    
+    const columnStatus = await getRemoteData('http://floating-citadel-15630.herokuapp.com/api/columns/' + idColumn);
+    
+    const column = JSON.parse(columnStatus);
+    
+    outputSpeech = `The status of column ${idColumn} is ${column.status} `;
+    return handlerInput.responseBuilder
+      .speak(outputSpeech)
+      .reprompt()
+      .getResponse();
+  }
+};
+
+
+
+const GetBatterieStatusHandler = {
+  canHandle(handlerInput) {
+    return (handlerInput.requestEnvelope.request.type === 'IntentRequest'
+      && handlerInput.requestEnvelope.request.intent.name === 'GetBatteryStatusIntent');
+  },
+  async handle(handlerInput) {
+      
+    let outputSpeech = "This is the default message.";
+    
+    const idBattery = handlerInput.requestEnvelope.request.intent.slots.idBattery.value;
+
+    const batteryTotal = await getRemoteData('http://floating-citadel-15630.herokuapp.com/api/batteries');
+    const batteryLength = JSON.parse(batteryTotal)
+    
+    if (idBattery > batteryLength.length) {
+        
+    outputSpeech = `The ${idBattery} exceed the number of battery. The number of battery deployed is ${batteryLength.length}`;
+      return handlerInput.responseBuilder
+        .speak(outputSpeech)
+        .reprompt()
+        .getResponse();
+    }
+    
+    const batteryStatus = await getRemoteData('http://floating-citadel-15630.herokuapp.com/api/batteries/' + idBattery);
+    
+    const battery = JSON.parse(batteryStatus).status;
+    
+    outputSpeech = `The status of battery ${idBattery} is ${battery} `;
+    
+    return handlerInput.responseBuilder
+      .speak(outputSpeech)
+      .reprompt()
+      .getResponse();
+  }
+};
+
+
+
+
+const GetInterventionHandler = {
+  canHandle(handlerInput) {
+    return (handlerInput.requestEnvelope.request.type === 'IntentRequest'
+      && handlerInput.requestEnvelope.request.intent.name === 'GetInterventionIntent');
+  },
+  async handle(handlerInput) {
+    let outputSpeech = "This is the default message.";
+    const idIntervention = handlerInput.requestEnvelope.request.intent.slots.idIntervention.value;
+    
+    
+    const interventiontotal = await getRemoteData('http://floating-citadel-15630.herokuapp.com/api/interventions/');
+    const interventionLength = JSON.parse(interventiontotal)
+    
+    if (idIntervention > interventionLength.length) {
+        
+    outputSpeech = `The ${idIntervention} exceed the number of intervention. The number of intervention is ${interventionLength.length}`;
+      return handlerInput.responseBuilder
+        .speak(outputSpeech)
+        .reprompt()
+        .getResponse();
+    }
+    
+    const internvetionInfo = await getRemoteData('http://floating-citadel-15630.herokuapp.com/api/interventions/' + idIntervention);
+    const intervention = JSON.parse(internvetionInfo)
+
+    
+    outputSpeech = `The intervention ${idIntervention} author id is ${intervention.author_id}, the customer id is ${intervention.customer_id}.
+    The building id is ${intervention.building_id}. the battery id is ${intervention.battery_id}, the column id is ${intervention.column_id} and the elevator id is ${intervention.elevator_id}.
+    The employee id assigned to the call is ${intervention.employee_id}`;
+    return handlerInput.responseBuilder
+      .speak(outputSpeech)
+      .reprompt()
+      .getResponse();
+  }
+};
+
+
+
+
+
+const GetCustomerHandler = {
+  canHandle(handlerInput) {
+    return (handlerInput.requestEnvelope.request.type === 'IntentRequest'
+      && handlerInput.requestEnvelope.request.intent.name === 'GetCustomerIntent');
+  },
+  async handle(handlerInput) {
+    let outputSpeech = "This is the default message.";
+    const idCustomer = handlerInput.requestEnvelope.request.intent.slots.idCustomer.value;
+    
+    
+    const customerTotal = await getRemoteData('https://floating-citadel-15630.herokuapp.com/api/customers');
+    const customerLength = JSON.parse(customerTotal)
+    
+    if (idCustomer > customerLength.length) {
+        
+    outputSpeech = `The ${idCustomer} exceed the number of customer. The number of customer is ${customerLength.length}`;
+      return handlerInput.responseBuilder
+        .speak(outputSpeech)
+        .reprompt()
+        .getResponse();
+    }
+    
+    const customerInfo = await getRemoteData('https://floating-citadel-15630.herokuapp.com/api/customers/' + idCustomer);
+    const customer = JSON.parse(customerInfo)
+
+    
+    outputSpeech = `The customer ${idCustomer} address id is ${customer.address_id}, the business name of the customer is ${customer.business_name}.
+    The contact full name is ${customer.contact_full_name}. The phone number is ${customer.contact_phone}, the email is ${customer.contact_email}. The business description is  ${customer.business_description}.
+    The technician full name ${customer.technician_full_name}, is phone number is ${customer.technician_phone} and is email is ${customer.technician_email}`;
+    return handlerInput.responseBuilder
+      .speak(outputSpeech)
+      .reprompt()
+      .getResponse();
+  }
+};
+
+
+const ChangeInterventionStatusHandler = {
+  canHandle(handlerInput) {
+    return (
+      handlerInput.requestEnvelope.request.type === "IntentRequest" &&
+      handlerInput.requestEnvelope.request.intent.name === "ChangeInterventionStatusIntent"
+    );
+  },
+  async handle(handlerInput) {
+      
+    const interventionIdStatus = handlerInput.requestEnvelope.request.intent.slots.interventionIdStatus.value;
+    const changeIntervention = handlerInput.requestEnvelope.request.intent.slots.changeIntervention.value;
+
+    var result = await callPutMethodForIntervention(interventionIdStatus, changeIntervention);
+
+    let say = result;
+
+    return handlerInput.responseBuilder
+      .speak(say)
+      .reprompt()
+      .getResponse();
+  }
+};
+
+
+
+
+function callPutMethodForIntervention() {
+exports.handler = function(interventionIdStatus, changeIntervention ) {
+
+
+
+   var options = {
+      host: 'http://floating-citadel-15630.herokuapp.com/api',
+      path: `/interventions/${interventionIdStatus}/${changeIntervention}`,
+      method: 'PUT',
+      'Content-Type': 'application/json'
+   };
+
+   const callback = function(response) {
+
+      var str = '';
+
+      response.on('data', function (chunk) {
+         str += chunk;
+      });
+
+      response.on('end', function () {
+         output(report, changeIntervention);
+      });
+   };
+
+   var targetSlot = interventionIdStatus.request.intent.slots.Target.value;
+   var report = 'I have updated your target to ' + targetSlot + ' percent';
+
+   if (interventionIdStatus.request.type === "IntentRequest") {
+
+      var req = http.request(options, callback);
+      var postData = '{"$type":"number","@unit":"%","?value":"' + targetSlot + '"}';
+
+      req.write(postData);
+      req.end();
+   }
+}}
+
+
+function output( text, context ) {
+
+   var response = {
+      outputSpeech: {
+         type: "PlainText",
+         text: text
+      },
+      card: {
+         type: "Simple",
+         title: "System Data",
+         content: text
+      },
+   shouldEndSession: true
+   };
+
+   context.succeed( {response : response} );
+
+}
+
+
+
+const HelpIntentHandler = {
+  canHandle(handlerInput) {
+    return handlerInput.requestEnvelope.request.type === 'IntentRequest'
+      && handlerInput.requestEnvelope.request.intent.name === 'AMAZON.HelpIntent';
+  },
+  handle(handlerInput) {
+    const speechText = 'You can introduce yourself by telling me your name';
+    return handlerInput.responseBuilder
+      .speak(speechText)
+      .reprompt(speechText)
+      .getResponse();
+  },
+};
+
+
+const CancelAndStopIntentHandler = {
+  canHandle(handlerInput) {
+    return handlerInput.requestEnvelope.request.type === 'IntentRequest'
+      && (handlerInput.requestEnvelope.request.intent.name === 'AMAZON.CancelIntent'
+        || handlerInput.requestEnvelope.request.intent.name === 'AMAZON.StopIntent');
+  },
+  handle(handlerInput) {
+    const speechText = 'Goodbye!';
+    return handlerInput.responseBuilder
+      .speak(speechText)
+      .getResponse();
+  },
+};
+
+
+const SessionEndedRequestHandler = {
+  canHandle(handlerInput) {
+    return handlerInput.requestEnvelope.request.type === 'SessionEndedRequest';
+  },
+  handle(handlerInput) {
+    console.log(`Session ended with reason: ${handlerInput.requestEnvelope.request.reason}`);
+    return handlerInput.responseBuilder.getResponse();
+  },
+};
+const ErrorHandler = {
+  canHandle() {
+    return true;
+  },
+  handle(handlerInput, error) {
+    console.log(`Error handled: ${error.message}`);
+    return handlerInput.responseBuilder
+      .speak('Sorry, I can\'t understand the command. Please say again.')
+      .reprompt('Sorry, I can\'t understand the command. Please say again.')
+      .getResponse();
+  },
+};
+
+const getRemoteData = function (url) {
+  return new Promise((resolve, reject) => {
+    const client = url.startsWith('https') ? require('https') : require('http');
+    const request = client.get(url, (response) => {
+      if (response.statusCode < 200 || response.statusCode > 299) {
+        reject(new Error('Failed with status code: ' + response.statusCode));
+      }
+      const body = [];
+      response.on('data', (chunk) => body.push(chunk));
+      response.on('end', () => resolve(body.join('')));
+    });
+    request.on('error', (err) => reject(err))
+  })
+};
+
+const skillBuilder = Alexa.SkillBuilders.custom();
+
+exports.handler = skillBuilder
+  .addRequestHandlers(
+      GetWelcomeHandler,
+    GetColumnStatusHandler,
+    GetInterventionHandler,
+    GetCustomerHandler,
+    GetBatterieStatusHandler,
+    GetElevatorStatusHandler,
+    GetAllInformationHandler,
+    HelpIntentHandler,
+    CancelAndStopIntentHandler,
+    SessionEndedRequestHandler
+  )
+  .addErrorHandlers(ErrorHandler)
+  .lambda();

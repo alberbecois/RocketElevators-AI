@@ -1,43 +1,233 @@
 {
-  "interactionModel": {
-    "languageModel": {
-      "invocationName": "api starter",
-      "types": [],
-      "intents": [
-        {
-          "name": "AMAZON.NavigateHomeIntent",
-          "samples": [
-
-          ]
-        },
-        {
-          "name": "AMAZON.CancelIntent",
-          "samples": []
-        },
-        {
-          "name": "AMAZON.HelpIntent",
-          "samples": []
-        },
-        {
-          "name": "AMAZON.StopIntent",
-          "samples": []
-        },
-        {
-          "name": "GetRemoteDataIntent",
-          "slots": [],
-          "samples": [
-            "how many people are in space",
-            "how many people are in space now",
-            "how many people are currently in space",
-            "how many humans are in space",
-            "how many humans are in space now",
-            "how many humans are currently in space",
-            "how many astronauts are in space",
-            "how many astronauts are in space now",
-            "how many astronauts are currently in space"
-          ]
+    "interactionModel": {
+        "languageModel": {
+            "invocationName": "rocket elevators",
+            "intents": [
+                {
+                    "name": "AMAZON.NavigateHomeIntent",
+                    "samples": []
+                },
+                {
+                    "name": "AMAZON.CancelIntent",
+                    "samples": []
+                },
+                {
+                    "name": "AMAZON.HelpIntent",
+                    "samples": []
+                },
+                {
+                    "name": "AMAZON.StopIntent",
+                    "samples": []
+                },
+                {
+                    "name": "GetRemoteDataIntent",
+                    "slots": [],
+                    "samples": [
+                        "how many elevator are active"
+                    ]
+                },
+                {
+                    "name": "GetWelcomeIntent",
+                    "slots": [],
+                    "samples": [
+                        "Hello",
+                        "Hi",
+                        "Bonjour",
+                        "Salut",
+                        "Hey",
+                        "Yo",
+                        "Sup",
+                        "Waddup"
+                    ]
+                },
+                {
+                    "name": "GetElevatorIdStatusDataHandler",
+                    "slots": [],
+                    "samples": [
+                        "status of elevator"
+                    ]
+                },
+                {
+                    "name": "GetAllInformationIntent",
+                    "slots": [],
+                    "samples": [
+                        "what is going on",
+                        "What is going on at Rocket Elevators",
+                        "What is up at Rocket Elevators",
+                        "What's up at Rocket Elevators",
+                        "How is it going at Rocket Elevators",
+                        "What is happening at Rocket Elevators",
+                        "Tell me what is going on at Rocket Elevators",
+                        "Tell me what is up at Rocket Elevators",
+                        "Tell me what's up at Rocket Elevators",
+                        "Tell me how is it going at Rocket Elevators",
+                        "Tell me what is happening at Rocket Elevators"
+                    ]
+                },
+                {
+                    "name": "GetElevatorStatusIntent",
+                    "slots": [
+                        {
+                            "name": "id",
+                            "type": "AMAZON.NUMBER"
+                        }
+                    ],
+                    "samples": [
+                        "what is the status of elevator {id}",
+                        "What is the elevator {id} status",
+                        "What's the status of elevator {id}",
+                        "What's the elevator {id} status",
+                        "Tell me the status of elevator {id}",
+                        "Tell me the elevator {id} status"
+                    ]
+                },
+                {
+                    "name": "GetColumnStatusIntent",
+                    "slots": [
+                        {
+                            "name": "idColumn",
+                            "type": "AMAZON.NUMBER"
+                        }
+                    ],
+                    "samples": [
+                        "what is the status of column {idColumn}",
+                        "What is the column {idColumn} status",
+                        "What's the status of column {idColumn}",
+                        "What's the column {idColumn} status",
+                        "Tell me the status of column {idColumn}",
+                        "Tell me the column {idColumn} status"
+                    ]
+                },
+                {
+                    "name": "GetBatteryStatusIntent",
+                    "slots": [
+                        {
+                            "name": "idBattery",
+                            "type": "AMAZON.NUMBER"
+                        }
+                    ],
+                    "samples": [
+                        "what is the status of battery {idBattery}",
+                        "What is the battery {idBattery} status",
+                        "What's the status of battery {idBattery}",
+                        "What's the battery {idBattery} status",
+                        "Tell me the status of battery {idBattery}",
+                        "Tell me the battery {idBattery} status"
+                    ]
+                },
+                {
+                    "name": "GetInterventionIntent",
+                    "slots": [
+                        {
+                            "name": "idIntervention",
+                            "type": "AMAZON.NUMBER"
+                        }
+                    ],
+                    "samples": [
+                        "what is the information of intervention {idIntervention}",
+                        "What is the intervention {idIntervention} information",
+                        "What's the information of intervention {idIntervention}",
+                        "What's the intervention {idIntervention} information",
+                        "Tell me the information of intervention {idIntervention}",
+                        "Tell me the intervention {idIntervention} information"
+                    ]
+                },
+                {
+                    "name": "GetCustomerIntent",
+                    "slots": [
+                        {
+                            "name": "idCustomer",
+                            "type": "AMAZON.NUMBER"
+                        }
+                    ],
+                    "samples": [
+                        "what is the information of customer {idCustomer}",
+                        "What is the customer {idCustomer} information",
+                        "What's the information of customer {idCustomer}",
+                        "What's the customer {idCustomer} information",
+                        "Tell me the information of customer {idCustomer}",
+                        "Tell me the customer {idCustomer} information"
+                    ]
+                },
+                {
+                    "name": "ChangeInterventionStatusToInProgressIntent",
+                    "slots": [
+                        {
+                            "name": "interventionIdStatus",
+                            "type": "AMAZON.NUMBER"
+                        }
+                    ],
+                    "samples": [
+                        "can you change int {interventionIdStatus} to the status in progress",
+                        "change the status in progress for the intervention id {interventionIdStatus}"
+                    ]
+                },
+                {
+                    "name": "ChangeInterventionStatusToCompletedIntent",
+                    "slots": [
+                        {
+                            "name": "interventionIdCompleted",
+                            "type": "AMAZON.NUMBER"
+                        }
+                    ],
+                    "samples": [
+                        "can you change int {interventionIdCompleted} to the status completed",
+                        "change the status completed for the intervention id {interventionIdCompleted}"
+                    ]
+                },
+                {
+                    "name": "ChangeElevatorStatusIntent",
+                    "slots": [
+                        {
+                            "name": "elevatorIdStatusToChange",
+                            "type": "AMAZON.NUMBER"
+                        },
+                        {
+                            "name": "elevatorIdStatusChoice",
+                            "type": "AMAZON.FirstName"
+                        }
+                    ],
+                    "samples": [
+                        "change elevator {elevatorIdStatusToChange} to the status {elevatorIdStatusChoice}",
+                        "change the status {elevatorIdStatusChoice} for the elevator id {elevatorIdStatusToChange}"
+                    ]
+                },
+                {
+                    "name": "ChangeColumnStatusIntent",
+                    "slots": [
+                        {
+                            "name": "ColumnIdStatusToChange",
+                            "type": "AMAZON.NUMBER"
+                        },
+                        {
+                            "name": "columnIdStatusChoice",
+                            "type": "AMAZON.FirstName"
+                        }
+                    ],
+                    "samples": [
+                        "change column {ColumnIdStatusToChange} to the status {columnIdStatusChoice}",
+                        "change the status {columnIdStatusChoice} for the column id {ColumnIdStatusToChange}"
+                    ]
+                },
+                {
+                    "name": "ChangeBatteryStatusIntent",
+                    "slots": [
+                        {
+                            "name": "BatteryIdStatusToChange",
+                            "type": "AMAZON.NUMBER"
+                        },
+                        {
+                            "name": "batteryIdStatusChoice",
+                            "type": "AMAZON.FirstName"
+                        }
+                    ],
+                    "samples": [
+                        "change battery {BatteryIdStatusToChange} to the status {batteryIdStatusChoice}",
+                        "change the status {batteryIdStatusChoice} for the battery id {BatteryIdStatusToChange}"
+                    ]
+                }
+            ],
+            "types": []
         }
-      ]
     }
-  }
 }
